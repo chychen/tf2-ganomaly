@@ -14,7 +14,7 @@ docker pull jaycase/tf2:latest
 
 ## Train and Evaluate
 
-- `mnist.ipynb`
+- [mnist.ipynb](https://github.com/chychen/tf2_ganomaly/blob/master/mnist.ipynb)
 
 ### TODO
 
