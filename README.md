@@ -1,16 +1,25 @@
 # tf2_ganomaly
 
-This repository contains Tensorflow 2.0 implementation of the paper **GANomaly: Semi-Supervised Anomaly Detection via Adversarial Training** [[1]](#Reference), and highly reference on **Pytorch implementation** from the author of paper. [[2]](#Reference)
+This repository contains Tensorflow 2.0 implementation of the paper **GANomaly: Semi-Supervised Anomaly Detection via Adversarial Training** [[1]](#Reference), and highly reference on **Pytorch implementation** [[2]](#Reference) from the author of paper.
 
 ## Environment
 
+### docker image
+
+includes tensorflow2, sklearn, tqdm, yapf
+
 ```bash
-docker pull tensorflow/tensorflow:2.0.0rc0-gpu-py3-jupyter
+docker pull jaycase/tf2:latest
 ```
 
-## Train
+## Train and Evaluate
 
-## Evaluate
+- `mnist.ipynb`
+
+### TODO
+
+- `uba.ipynb`
+- `ffob.ipynb`
 
 ## Reference
 
