@@ -4,6 +4,7 @@ from tqdm.auto import tqdm
 import tensorflow as tf
 from tensorflow.keras import layers
 import metrics
+from absl import logging
 
 
 class Conv_BN_Act(tf.keras.layers.Layer):
@@ -273,7 +274,7 @@ class GANRunner:
                 G_losses = np.array(G_losses).mean()
                 D_losses = np.array(D_losses).mean()
                 speed = step * len(x_batch_train) / (time.time() - start_time)
-                print(
+                logging.info(
                     'epoch: {}, G_losses: {:.4f}, D_losses: {:.4f}, samples/sec: {:.4f}'
                     .format(epoch, G_losses, D_losses, speed))
 
@@ -288,8 +289,9 @@ class GANRunner:
                     D_losses.append(loss[1].numpy())
                 G_losses = np.array(G_losses).mean()
                 D_losses = np.array(D_losses).mean()
-                print('\t Validating: G_losses: {}, D_losses: {}'.format(
-                    G_losses, D_losses))
+                logging.info(
+                    '\t Validating: G_losses: {}, D_losses: {}'.format(
+                        G_losses, D_losses))
 
             # evaluate on test_dataset
             if self.test_dataset is not None:
@@ -303,7 +305,7 @@ class GANRunner:
                 if self.best_state == state_value:
                     log_str = '*** ' + log_str + ' ***'
                     self.save_best()
-                print(log_str)
+                logging.info(log_str)
 
     def save(self, path):
         self.G.save_weights(self.save_path + 'G')
@@ -431,7 +433,8 @@ class GANomaly(GANRunner):
         if d_loss < 1e-5:
             st = time.time()
             self.D.load_weights(self.D_init_w_path)
-            print('re-init D, cost: {:.4f} secs'.format(time.time() - st))
+            logging.info('re-init D, cost: {:.4f} secs'.format(time.time() -
+                                                               st))
 
         return g_loss, d_loss
 

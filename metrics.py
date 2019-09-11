@@ -28,9 +28,7 @@ def roc_auc(labels, scores, show=False):
         plt.ylabel('True Positive Rate')
         plt.title('Receiver operating characteristic')
         plt.legend(loc="lower right")
-
-
-#         plt.savefig(os.path.join(saveto, "ROC.pdf"))
+        plt.savefig("roc_auc.png")
 #         plt.close()
     return {'roc_auc': roc_auc}
 
@@ -57,4 +55,6 @@ def pre_rec_curve(labels, scores, show=False):
         plt.xlim([0.0, 1.0])
         plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
             average_precision))
+        plt.savefig("pre_rec_curve.png")
+#         plt.close()
     return {'average_precision': average_precision}

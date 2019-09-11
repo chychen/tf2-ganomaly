@@ -14,12 +14,16 @@ docker pull jaycase/tf2:latest
 
 ## Train and Evaluate
 
-- [mnist.ipynb](https://github.com/chychen/tf2_ganomaly/blob/master/mnist.ipynb)
+```bash
+# cifar10
+python train.py --log_dir=log --anomaly=1 --dataset=cifar10 --isize=32 --nc=3
+# mnist
+python train.py --log_dir=log --anomaly=2 --dataset=mnist --isize=32 --nc=1
+```
 
-### TODO
+### Notebooks
 
-- `uba.ipynb`
-- `ffob.ipynb`
+- [mnist_example.ipynb](https://github.com/chychen/tf2_ganomaly/blob/master/mnist_example.ipynb)
 
 ## Reference
 
