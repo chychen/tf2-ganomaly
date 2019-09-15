@@ -1,4 +1,4 @@
-# tf2_ganomaly
+# tf2-ganomaly
 
 This repository contains Tensorflow 2.0 implementation of the paper **GANomaly: Semi-Supervised Anomaly Detection via Adversarial Training** [[1]](#Reference), and highly reference on **Pytorch implementation** [[2]](#Reference) from the author of paper.
 
