@@ -22,6 +22,8 @@ flags.DEFINE_integer("nc", None, "input channels")
 flags.DEFINE_integer("ndf", 64, "number of discriminator's filters")
 flags.DEFINE_integer("ngf", 64, "number of generator's filters")
 flags.DEFINE_integer("extralayers", 0, "extralayers for both G and D")
+flags.DEFINE_list("encdims", None, "Layer dimensions of the encoder and in reverse of the decoder."
+                                   "If given, dense encoder and decoders are used.")
 flags.DEFINE_integer("niter", 15, "number of training epochs")
 flags.DEFINE_float("lr", 2e-4, "learning rate")
 flags.DEFINE_float("w_adv", 1., "Adversarial loss weight")

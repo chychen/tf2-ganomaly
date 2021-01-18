@@ -119,6 +119,47 @@ class Encoder(tf.keras.layers.Layer):
             return out
 
 
+class DenseEncoder(tf.keras.layers.Layer):
+    def __init__(self, layer_dims, out_size=None, output_features=False, hidden_activation="selu", p_dropout=.2):
+        """
+        Params:
+            layer_dims(Tuple[int]): dense layer dimensions
+            out_size(int): overwrite the output size of the last layer; use layer_dims[-1] if None
+            output_features(bool): use intermediate activation
+            hidden_activation(Union[str,tf.keras.layers.Activation]): activation of the hidden layers
+            p_dropout(float): dropout between the hidden layers
+        """
+        super(DenseEncoder, self).__init__()
+
+        # Config
+        self.output_features = output_features
+
+        # Layers
+        self.in_block = tf.keras.layers.Dense(layer_dims[0], activation=hidden_activation)
+        self.body_blocks = []
+        self.body_blocks.append(tf.keras.layers.Dropout(p_dropout))
+        for cur_dim in layer_dims[1:-1]:
+            self.body_blocks.append(tf.keras.layers.Dense(cur_dim, activation=hidden_activation))
+            self.body_blocks.append(tf.keras.layers.Dropout(p_dropout))
+
+        # Override the output dimension if given
+        if out_size is not None:
+            self.out_act = tf.keras.layers.Dense(out_size)
+        else:
+            self.out_act = tf.keras.layers.Dense(layer_dims[-1])
+
+    def call(self, x):
+        x = self.in_block(x)
+        for block in self.body_blocks:
+            x = block(x)
+        last_features = x
+        out = self.out_act(last_features)
+        if self.output_features:
+            return out, last_features
+        else:
+            return out
+
+
 class Decoder(tf.keras.layers.Layer):
     def __init__(self, isize, nz, nc, ngf, n_extra_layers=0):
         """
@@ -179,15 +220,48 @@ class Decoder(tf.keras.layers.Layer):
         return x
 
 
+class DenseDecoder(tf.keras.layers.Layer):
+    def __init__(self, isize, layer_dims, hidden_activation="selu", p_dropout=.2):
+        """
+        Params:
+            isize(int): input size
+            layer_dims(Tuple[int]): dense layer dimensions
+            hidden_activation(Union[str,tf.keras.layers.Activation]): activation of the hidden layers
+            p_dropout(float): dropout between the hidden layers
+        """
+        super(DenseDecoder, self).__init__()
+
+        # Layers
+        self.in_block = tf.keras.layers.Dense(layer_dims[0], activation=hidden_activation)
+        self.body_blocks = []
+        self.body_blocks.append(tf.keras.layers.Dropout(p_dropout))
+        for cur_dim in layer_dims[1:]:
+            self.body_blocks.append(tf.keras.layers.Dense(cur_dim, activation=hidden_activation))
+            self.body_blocks.append(tf.keras.layers.Dropout(p_dropout))
+
+        self.out_block = tf.keras.layers.Dense(isize, activation="tanh")
+
+    def call(self, x):
+        x = self.in_block(x)
+        for block in self.body_blocks:
+            x = block(x)
+        x = self.out_block(x)
+        return x
+
+
 class NetG(tf.keras.Model):
     def __init__(self, opt):
         super(NetG, self).__init__()
-        self.encoder1 = Encoder(opt.isize, opt.nz, opt.nc, opt.ngf,
-                                opt.extralayers)
-        self.decoder = Decoder(opt.isize, opt.nz, opt.nc, opt.ngf,
-                               opt.extralayers)
-        self.encoder2 = Encoder(opt.isize, opt.nz, opt.nc, opt.ngf,
-                                opt.extralayers)
+
+        # Use the dense encoder-decoder pair when the dimensions are given
+        if opt.encdims:
+            self.encoder1 = DenseEncoder(opt.encdims)
+            self.decoder = DenseDecoder(opt.isize, tuple(reversed(opt.encdims[:-1])))
+            self.encoder2 = DenseEncoder(opt.encdims)
+        else:
+            self.encoder1 = Encoder(opt.isize, opt.nz, opt.nc, opt.ngf, opt.extralayers)
+            self.decoder = Decoder(opt.isize, opt.nz, opt.nc, opt.ngf, opt.extralayers)
+            self.encoder2 = Encoder(opt.isize, opt.nz, opt.nc, opt.ngf, opt.extralayers)
 
     def call(self, x):
         latent_i = self.encoder1(x)
@@ -205,12 +279,13 @@ class NetD(tf.keras.Model):
     """
     def __init__(self, opt):
         super(NetD, self).__init__()
-        self.encoder = Encoder(opt.isize,
-                               1,
-                               opt.nc,
-                               opt.ngf,
-                               opt.extralayers,
-                               output_features=True)
+
+        # Use the dense encoder when the dimensions are given
+        if opt.encdims:
+            self.encoder = DenseEncoder(opt.encdims, out_size=1, output_features=True)
+        else:
+            self.encoder = Encoder(opt.isize, 1, opt.nc, opt.ngf, opt.extralayers, output_features=True)
+
         self.sigmoid = layers.Activation(tf.sigmoid)
 
     def call(self, x):
@@ -338,7 +413,7 @@ class GANomaly(GANRunner):
                                        train_dataset=train_dataset,
                                        valid_dataset=valid_dataset,
                                        test_dataset=test_dataset)
-        self.D(tf.keras.Input(shape=[opt.isize, opt.isize, opt.nc]))
+        self.D(tf.keras.Input(shape=[opt.isize] if opt.encdims else [opt.isize, opt.isize, opt.nc]))
         self.D_init_w_path = '/tmp/D_init'
         self.D.save_weights(self.D_init_w_path)
 
